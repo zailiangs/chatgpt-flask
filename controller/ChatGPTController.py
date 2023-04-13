@@ -2,11 +2,14 @@ import openai
 import time
 import json
 from flask import request, Response, Blueprint
+from flask_cors import CORS, cross_origin
 
 # 一个蓝图对象
 ChatGPT = Blueprint('chat', __name__)
+CORS(ChatGPT, resources={r"/*": {"origins": "*"}})
 
 
+@cross_origin()
 @ChatGPT.route('/chat', methods=['POST'])
 def chat():
     # 获取POST请求中的JSON数据参数
@@ -39,6 +42,7 @@ def chat():
     return Response(generate(), mimetype='text/event-stream')
 
 
+@cross_origin()
 @ChatGPT.route('/sse', methods=['POST'])
 def sse():
     def event_stream():

@@ -1,8 +1,10 @@
 from flask import Flask
 from controller.ChatGPTController import ChatGPT
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+# 初始化CORS扩展
+CORS(app, resources={r"/*": {"origins": "*"}})
 # 注册蓝图(用的文件名)
 app.register_blueprint(ChatGPT)
 
