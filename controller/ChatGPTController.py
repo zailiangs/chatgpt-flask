@@ -1,16 +1,28 @@
 import openai
 import time
 import sys
+import os
 import json
 import logging
-from flask import request, Response, Blueprint
+from logging.handlers import RotatingFileHandler
+from flask import Flask, request, Response, Blueprint
 from flask_cors import CORS, cross_origin
 
+app = Flask(__name__)
 # 一个蓝图对象
 ChatGPT = Blueprint('chat', __name__)
 CORS(ChatGPT, resources={r"/*": {"origins": "*"}})
 # 配置日志记录器
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+# 定义日志处理器，设置日志级别为 INFO，并将日志写入到文件中
+if not os.path.exists('logs'):
+    os.mkdir('logs')
+handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
+handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+handler.setLevel(logging.INFO)
+
+# 将日志处理器添加到默认的日志记录器中
+app.logger.addHandler(handler)
 
 
 @cross_origin()
@@ -49,6 +61,7 @@ def chat():
 @ChatGPT.route('/sse', methods=['GET', 'POST'])
 def sse():
     def event_stream():
+        app.logger.info("sse start-------")
         data_list = [{"role": "assistant"}, {"content": "你好"}, {"content": "!"}, {"content": "有"}, {"content": "什么"},
                      {"content": "可以"}, {"content": "帮助"}, {"content": "您"}, {"content": "的"}, {"content": "吗"}, {}]
         for data in data_list:
