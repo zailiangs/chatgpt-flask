@@ -15,7 +15,6 @@ def chat():
     # 获取POST请求中的JSON数据参数
     content = request.get_json()['content']
     openai.api_key = "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"
-    # 请求ChatGPT
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -31,10 +30,11 @@ def chat():
         for chunk in response:
             chunk_message = chunk['choices'][0]['delta']
             # 使用json包将字典转换为JSON格式的字符串
-            chunk_dumps = json.dumps(chunk_message)
-            chunk_content = json.loads(chunk_dumps)
+            loads = json.loads(json.dumps(chunk_message))
+            # 将单引号替换为双引号
+            chunk_data = str(loads).replace("'", "\"")
             # 返回响应
-            yield 'data: {}\n\n'.format(chunk_content)
+            yield 'data: {}\n\n'.format(chunk_data)
 
         end_time = time.time() - start_time
         print(f"完全响应请求: {end_time:.2f} 秒")
@@ -43,13 +43,13 @@ def chat():
 
 
 @cross_origin()
-@ChatGPT.route('/sse', methods=['POST'])
+@ChatGPT.route('/sse', methods=['GET', 'POST'])
 def sse():
     def event_stream():
-        # 写随机很多的数据
-        data_list = [{'role': 'assistant'}, {'content': '你好'}, {'content': '！'}, {'content': '有'}, {'content': '什么'},
-                     {'content': '可以'}, {'content': '帮助'}, {'content': '您'}, {'content': '的'}, {'content': '吗?'}, {}]
+        data_list = [{"role": "assistant"}, {"content": "你好"}, {"content": "!"}, {"content": "有"}, {"content": "什么"},
+                     {"content": "可以"}, {"content": "帮助"}, {"content": "您"}, {"content": "的"}, {"content": "吗"}, {}]
         for data in data_list:
-            yield 'data: {}\n\n'.format(data)
+            data_replace = str(data).replace("'", "\"")
+            yield 'data: {}\n\n'.format(data_replace)
 
     return Response(event_stream(), mimetype='text/event-stream')
