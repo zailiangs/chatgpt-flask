@@ -24,7 +24,6 @@ def chat():
     )
 
     def generate():
-        # 开始时间
         start_time = time.time()
         # 流式响应
         for chunk in response:
