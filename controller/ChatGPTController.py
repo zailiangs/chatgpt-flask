@@ -1,12 +1,16 @@
 import openai
 import time
+import sys
 import json
+import logging
 from flask import request, Response, Blueprint
 from flask_cors import CORS, cross_origin
 
 # 一个蓝图对象
 ChatGPT = Blueprint('chat', __name__)
 CORS(ChatGPT, resources={r"/*": {"origins": "*"}})
+# 配置日志记录器
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 @cross_origin()
