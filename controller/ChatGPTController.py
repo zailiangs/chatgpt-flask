@@ -1,10 +1,11 @@
-import openai
-import time
-import sys
-import os
 import json
 import logging
+import os
+import sys
+import time
 from logging.handlers import RotatingFileHandler
+
+import openai
 from flask import Flask, request, Response, Blueprint
 from flask_cors import CORS, cross_origin
 
@@ -52,7 +53,7 @@ def chat():
             yield 'data: {}\n\n'.format(chunk_data)
 
         end_time = time.time() - start_time
-        print(f"完全响应请求: {end_time:.2f} 秒")
+        app.logger.info(f"完全响应请求: {end_time:.2f} 秒")
 
     return Response(generate(), mimetype='text/event-stream')
 
