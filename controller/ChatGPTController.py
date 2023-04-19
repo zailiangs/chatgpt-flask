@@ -27,10 +27,9 @@ app.logger.addHandler(handler)
 
 
 @cross_origin()
-@ChatGPT.route('/chat', methods=['POST'])
+@ChatGPT.route('/chat', methods=['GET'])
 def chat():
-    # 获取POST请求中的JSON数据参数
-    content = request.get_json()['content']
+    content = request.args.get('content')
     openai.api_key = "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"
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -52,19 +51,22 @@ def chat():
             # 返回响应
             yield 'data: {}\n\n'.format(chunk_data)
 
-        end_time = time.time() - start_time
-        app.logger.info(f"完全响应请求: {end_time:.2f} 秒")
+        # end_time = time.time() - start_time
+        # app.logger.info(f"完全响应请求: {end_time:.2f} 秒")
 
     return Response(generate(), mimetype='text/event-stream')
 
 
 @cross_origin()
-@ChatGPT.route('/sse', methods=['GET', 'POST'])
+@ChatGPT.route('/sse', methods=['GET'])
 def sse():
+    content = request.args.get("content")
+    app.logger.info("sse start-------")
+
     def event_stream():
-        app.logger.info("sse start-------")
         data_list = [{"role": "assistant"}, {"content": "你好"}, {"content": "!"}, {"content": "有"}, {"content": "什么"},
-                     {"content": "可以"}, {"content": "帮助"}, {"content": "您"}, {"content": "的"}, {"content": "吗"}, {}]
+                     {"content": "可以"}, {"content": "帮助"}, {"content": "您"}, {"content": "的"}, {"content": "吗?"},
+                     {"content": " 内容测试词: "}, {"content": content}, {}]
         for data in data_list:
             data_replace = str(data).replace("'", "\"")
             yield 'data: {}\n\n'.format(data_replace)
