@@ -1,29 +1,16 @@
 import json
-import logging
-import os
-import sys
 import time
-from logging.handlers import RotatingFileHandler
 
 import openai
-from flask import Flask, request, Response, Blueprint
-from flask_cors import CORS, cross_origin
+from flask import request, Response, Blueprint
+from flask_cors import cross_origin
 
-app = Flask(__name__)
+from baseLogger import BaseLogger
+
 # 一个蓝图对象
 ChatGPT = Blueprint('chat', __name__)
-CORS(ChatGPT, resources={r"/*": {"origins": "*"}})
-# 配置日志记录器
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-# 定义日志处理器，设置日志级别为 INFO，并将日志写入到文件中
-if not os.path.exists('logs'):
-    os.mkdir('logs')
-handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
-handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
-handler.setLevel(logging.INFO)
-
-# 将日志处理器添加到默认的日志记录器中
-app.logger.addHandler(handler)
+# 初始化日志
+logger = BaseLogger('./logs/app.log')
 
 
 @cross_origin()
@@ -51,8 +38,8 @@ def chat():
             # 返回响应
             yield 'data: {}\n\n'.format(chunk_data)
 
-        # end_time = time.time() - start_time
-        # app.logger.info(f"完全响应请求: {end_time:.2f} 秒")
+        end_time = time.time() - start_time
+        logger.info(f"完全响应请求: {end_time:.2f} 秒")
 
     return Response(generate(), mimetype='text/event-stream')
 
@@ -61,14 +48,14 @@ def chat():
 @ChatGPT.route('/sse', methods=['GET'])
 def sse():
     content = request.args.get("content")
-    app.logger.info("sse start-------")
+    logger.info("sse start-------")
 
     def event_stream():
         data_list = [{"role": "assistant"}, {"content": "你好"}, {"content": "!"}, {"content": "有"}, {"content": "什么"},
                      {"content": "可以"}, {"content": "帮助"}, {"content": "您"}, {"content": "的"}, {"content": "吗?"},
                      {"content": " 内容测试词: "}, {"content": content}, {}]
         for data in data_list:
-            data_replace = str(data).replace("'", "\"")
+            data_replace = str(data).replace("'", '"')
             yield 'data: {}\n\n'.format(data_replace)
 
     return Response(event_stream(), mimetype='text/event-stream')
