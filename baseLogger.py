@@ -1,4 +1,5 @@
 import logging
+import datetime
 from logging.handlers import TimedRotatingFileHandler
 
 
@@ -14,13 +15,17 @@ class BaseLogger:
         self.logger.addHandler(handler)
 
     def debug(self, message):
-        self.logger.debug(message)
+        time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.logger.debug(time + " [DEBUG] " + message)
 
     def info(self, message):
-        self.logger.info(message)
+        time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.logger.info(time + " [INFO] " + message)
 
     def warning(self, message):
-        self.logger.warning(message)
+        time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.logger.warning(time + " [WARNING] " + message)
 
     def error(self, message):
-        self.logger.error(message)
+        time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.logger.error(time + " [ERROR] " + message)

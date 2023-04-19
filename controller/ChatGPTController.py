@@ -48,7 +48,7 @@ def chat():
 @ChatGPT.route('/sse', methods=['GET'])
 def sse():
     content = request.args.get("content")
-    logger.info("sse start-------")
+    logger.info("--------------------sse api call")
 
     def event_stream():
         data_list = [{"role": "assistant"}, {"content": "你好"}, {"content": "!"}, {"content": "有"}, {"content": "什么"},
