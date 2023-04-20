@@ -1,19 +1,19 @@
 from flask import Flask
 from flask_cors import CORS
 
-from controller.ChatGPTController import ChatGPT
+from chat.api.chat import gpt
 
 app = Flask(__name__)
 # 初始化CORS扩展
 CORS(app, resources={r"/*": {"origins": "*"}})
 # 注册蓝图(用的文件名)
-app.register_blueprint(ChatGPT)
+app.register_blueprint(gpt)
 
 
 @app.route('/')
 def hello_world():
-    app.logger.info('Processing default request...')
-    return 'Hello World!'
+    app.logger.info('Welcome to the AI world!')
+    return 'Welcome to the AI world!'
 
 
 if __name__ == '__main__':

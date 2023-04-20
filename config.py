@@ -3,11 +3,13 @@ import datetime
 from logging.handlers import TimedRotatingFileHandler
 
 
+# 记录器
 class BaseLogger:
     def __init__(self, log_file_path):
         # 创建一个 TimedRotatingFileHandle 对象并设定相关参数
         handler = TimedRotatingFileHandler(log_file_path, when='midnight', backupCount=7)
-        handler.suffix = '%Y-%m-%d'
+        # 设置日志文件的格式
+        handler.suffix = '%Y-%m-%d.log'
 
         # 配置日志信息和格式
         logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s [%(name)s] %(message)s')
