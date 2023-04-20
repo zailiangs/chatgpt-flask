@@ -12,7 +12,6 @@ app.register_blueprint(gpt)
 
 @app.route('/')
 def hello_world():
-    app.logger.info('Welcome to the AI world!')
     return 'Welcome to the AI world!'
 
 
