@@ -4,7 +4,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 
 # 记录器
-class BaseLogger:
+class Logger:
     def __init__(self, log_file_path):
         # 创建一个 TimedRotatingFileHandle 对象并设定相关参数
         handler = TimedRotatingFileHandler(log_file_path, when='midnight', backupCount=7)

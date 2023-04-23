@@ -3,14 +3,15 @@ import openai
 from flask import request, Response, Blueprint
 from flask_cors import cross_origin
 
-from config import BaseLogger
+from config import Logger
 
 # 一个蓝图对象
 gpt = Blueprint('chat', __name__)
 # 初始化日志
-logger = BaseLogger('./logs/chat.log')
+logger = Logger('./logs/chat.log')
 
 
+# AI聊天
 @cross_origin()
 @gpt.route('/chat', methods=['GET'])
 def chat():
@@ -36,15 +37,16 @@ def chat():
     return Response(generate(), mimetype='text/event-stream')
 
 
+# 服务端推送协议测试
 @gpt.route('/sse', methods=['GET'])
 def sse():
     content = request.args.get("content")
     logger.info("--------------------SSE API Call")
 
     def event_stream():
-        data_list = [{"role": "assistant"}, {"content": "你好"}, {"content": "!"}, {"content": "有"}, {"content": "什么"},
-                     {"content": "可以"}, {"content": "帮助"}, {"content": "您"}, {"content": "的"}, {"content": "吗?"},
-                     {"content": " 内容测试词: "}, {"content": content}, {}]
+        data_list = [{"role": "assistant"}, {"content": "你好"}, {"content": "!"}, {"content": "有"},
+                     {"content": "什么"}, {"content": "可以"}, {"content": "帮助"}, {"content": "您"},
+                     {"content": "的"}, {"content": "吗?"}, {"content": " 内容测试词: "}, {"content": content}, {}]
         for data in data_list:
             data_replace = str(data).replace("'", '"')
             yield 'data: {}\n\n'.format(data_replace)

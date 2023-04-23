@@ -5,7 +5,7 @@ from chat.api.chat import gpt
 
 app = Flask(__name__)
 # 初始化CORS扩展
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 # 注册蓝图(用的文件名)
 app.register_blueprint(gpt)
 
