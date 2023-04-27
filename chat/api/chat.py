@@ -60,3 +60,12 @@ def sse():
             yield 'data: {}\n\n'.format(data_replace)
 
     return Response(event_stream(), mimetype='text/event-stream')
+
+
+@chat_bp.route('/test', methods=['GET'])
+def test():
+    cur = app.get_db_cursor()
+    cur.execute("select * from ai_user_question")
+    result = cur.fetchall()
+    app.close_db_cursor(error=None)
+    return str(result)
