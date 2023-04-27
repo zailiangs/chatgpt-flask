@@ -4,7 +4,7 @@ import openai
 from flask import request, Response, Blueprint
 from flask_cors import cross_origin
 
-# import app
+import app
 from config import Logger
 
 # 一个蓝图对象
@@ -28,10 +28,10 @@ def chat():
     )
     work_id = request.args.get('work_id')
     # 数据插入
-    # cur = app.get_db_cursor()
-    # cur.execute("insert into ai_user_question (work_id, question) values (%s, %s)", (work_id, content))
-    # cur.connection.commit()
-    # app.close_db_cursor(error=None)
+    cur = app.get_db_cursor()
+    cur.execute("insert into ai_user_question (work_id, question) values (%s, %s)", (work_id, content))
+    cur.connection.commit()
+    app.close_db_cursor(error=None)
 
     def generate():
         for chunk in response:
