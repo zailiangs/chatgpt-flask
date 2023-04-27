@@ -42,10 +42,12 @@ def chat():
 # 保存用户聊天数据
 @chat_bp.route('/saveRecord', methods=['POST'])
 def save_record():
-    content = request.form.get('content')
     work_id = request.form.get('work_id')
+    question = request.form.get('question')
+    answer = request.form.get('answer')
     cur = app.get_db_cursor()
-    cur.execute("insert into ai_user_question (work_id, question) values (%s, %s)", (work_id, content))
+    cur.execute("insert into ai_user_question (work_id, question, answer) values (%s, %s, %s)",
+                (work_id, question, answer))
     commit = cur.connection.commit()
     # 如果失败的话，就回滚
     if commit == 0:
