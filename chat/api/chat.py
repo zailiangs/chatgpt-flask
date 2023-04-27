@@ -43,10 +43,10 @@ def chat():
 @chat_bp.route('/saveRecord', methods=['POST'])
 def save_record():
     work_id = request.json.get("work_id")
-    question = request.json.get('question')
-    answer = request.json.get('answer')
+    question = request.json.get("question")
+    answer = request.json.get("answer")
     cur = app.get_db_cursor()
-    cur.execute("insert into ai_user_question (work_id, question, answer) values (%s, %s, %s)",
+    cur.execute("insert into ai_user_converse (work_id, question, answer) values (%s, %s, %s)",
                 (work_id, question, answer))
     commit = cur.connection.commit()
     # 如果失败的话，就回滚
@@ -60,7 +60,7 @@ def save_record():
     return jsonify(result)
 
 
-# 服务端推送协议测试
+# 流式推送测试
 @chat_bp.route('/sse', methods=['GET'])
 def sse():
     content = request.args.get("content")
@@ -77,20 +77,11 @@ def sse():
     return Response(event_stream(), mimetype='text/event-stream')
 
 
-# 测试数据库连接
+# 数据库事务功能异常测试
 @chat_bp.route('/test', methods=['GET'])
 def test():
     cur = app.get_db_cursor()
-    cur.execute("select * from ai_user_question")
-    result = cur.fetchall()
-    app.close_db_cursor(error=None)
-    return str(result)
-
-
-@chat_bp.route('/testAdd', methods=['GET'])
-def test_add():
-    cur = app.get_db_cursor()
-    cur.execute("insert into ai_user_question (work_id, question) values (%s, %s)", (1, "testtesttest"))
+    cur.execute("insert into ai_user_converse (work_id, question) values (%s, %s)", (1, "testtesttest"))
     commit = cur.connection.commit()
     # 如果失败的话，就回滚
     if commit == 0:
