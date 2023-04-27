@@ -1,17 +1,17 @@
-import logging
 import datetime
+import logging
 from logging.handlers import TimedRotatingFileHandler
 
 
-# ¼ÇÂ¼Æ÷
+# è®°å½•æ—¥å¿—æ“ä½œç±»
 class Logger:
     def __init__(self, log_file_path):
-        # ´´½¨Ò»¸ö TimedRotatingFileHandle ¶ÔÏó²¢Éè¶¨Ïà¹Ø²ÎÊı
+        # åˆ›å»ºä¸€ä¸ª TimedRotatingFileHandle å¯¹è±¡å¹¶è®¾å®šç›¸å…³å‚æ•°
         handler = TimedRotatingFileHandler(log_file_path, when='midnight', backupCount=7)
-        # ÉèÖÃÈÕÖ¾ÎÄ¼şµÄ¸ñÊ½
+        # è®¾ç½®æ—¥å¿—æ–‡ä»¶çš„æ ¼å¼
         handler.suffix = '%Y-%m-%d.log'
 
-        # ÅäÖÃÈÕÖ¾ĞÅÏ¢ºÍ¸ñÊ½
+        # é…ç½®æ—¥å¿—ä¿¡æ¯å’Œæ ¼å¼
         logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s [%(name)s] %(message)s')
         self.logger = logging.getLogger()
         self.logger.addHandler(handler)

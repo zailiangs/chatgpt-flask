@@ -1,19 +1,21 @@
 import json
+
 import openai
 from flask import request, Response, Blueprint
 from flask_cors import cross_origin
 
+import app
 from config import Logger
 
 # 一个蓝图对象
-gpt = Blueprint('chat', __name__)
+chat_bp = Blueprint('chat', __name__)
 # 初始化日志
 logger = Logger('./logs/chat.log')
 
 
 # AI聊天
 @cross_origin()
-@gpt.route('/chat', methods=['GET'])
+@chat_bp.route('/chat', methods=['GET'])
 def chat():
     content = request.args.get('content')
     openai.api_key = "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"
@@ -24,6 +26,12 @@ def chat():
         ],
         stream=True,
     )
+    work_id = request.args.get('work_id')
+    # 数据插入
+    cur = app.get_db_cursor()
+    cur.execute("insert into ai_user_question (work_id, question) values (%s, %s)", (work_id, content))
+    cur.connection.commit()
+    app.close_db_cursor(error=None)
 
     def generate():
         for chunk in response:
@@ -38,7 +46,7 @@ def chat():
 
 
 # 服务端推送协议测试
-@gpt.route('/sse', methods=['GET'])
+@chat_bp.route('/sse', methods=['GET'])
 def sse():
     content = request.args.get("content")
     logger.info("--------------------SSE API Call")
