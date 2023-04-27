@@ -31,3 +31,26 @@ class Logger:
     def error(self, message):
         time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.logger.error(time + " [ERROR] " + message)
+
+
+class Result:
+    def __init__(self, code, msg, data):
+        self.code = code
+        self.msg = msg
+        self.data = data
+
+    def success_result(self, msg, data):
+        self.code = 200
+        self.msg = msg
+        self.data = data
+        return self
+
+    def error_result(self, msg):
+        self.code = 400
+        self.msg = msg
+        return self
+
+    def error_custom_result(self, code, msg):
+        self.code = code
+        self.msg = msg
+        return self

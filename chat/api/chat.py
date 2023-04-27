@@ -1,7 +1,7 @@
 import json
 
 import openai
-from flask import request, Response, Blueprint
+from flask import request, jsonify, Response, Blueprint
 from flask_cors import cross_origin
 
 import app
@@ -42,9 +42,9 @@ def chat():
 # 保存用户聊天数据
 @chat_bp.route('/saveRecord', methods=['POST'])
 def save_record():
-    work_id = request.form.get('work_id')
-    question = request.form.get('question')
-    answer = request.form.get('answer')
+    work_id = request.json.get("work_id")
+    question = request.json.get('question')
+    answer = request.json.get('answer')
     cur = app.get_db_cursor()
     cur.execute("insert into ai_user_question (work_id, question, answer) values (%s, %s, %s)",
                 (work_id, question, answer))
@@ -52,8 +52,12 @@ def save_record():
     # 如果失败的话，就回滚
     if commit == 0:
         cur.connection.rollback()
+        result = {"code": 400, "msg": "保存失败"}
+    else:
+        result = {"code": 200, "msg": "保存成功"}
+
     app.close_db_cursor(error=None)
-    return "success"
+    return jsonify(result)
 
 
 # 服务端推送协议测试
