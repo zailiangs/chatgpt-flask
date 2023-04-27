@@ -1,9 +1,11 @@
 from flask import Flask, g
 from flask_cors import CORS
 from flask_mysqldb import MySQL
-
+import sys
 from chat.api.chat import chat_bp
 
+# 解决部署后找不到模块的问题
+sys.path.append('/root/deploy/mysqldb')
 app = Flask(__name__)
 # 配置数据库
 app.config['MYSQL_HOST'] = '1.117.243.197'
