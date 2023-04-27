@@ -1,6 +1,7 @@
 from flask import Flask, g
 from flask_cors import CORS
 from pymysql import connect
+
 # from flask_mysqldb import MySQL
 from chat.api.chat import chat_bp
 
@@ -35,7 +36,7 @@ connect = connect(host="1.117.243.197", port=53306, user="root", password="Passg
 # 获取数据库游标
 def get_db_cursor():
     if 'db' not in g:
-        g.db = connect
+        g.db = connect.cursor()
     return g.db
 
 
