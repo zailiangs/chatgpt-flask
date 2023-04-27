@@ -8,7 +8,7 @@ import app
 from config import Logger
 
 # 一个蓝图对象
-chat_bp = Blueprint('chat', __name__)
+chat_bp = Blueprint('chat', __name__, url_prefix='/api')
 # 初始化日志
 logger = Logger('./logs/chat.log')
 
@@ -26,12 +26,6 @@ def chat():
         ],
         stream=True,
     )
-    work_id = request.args.get('work_id')
-    # 数据插入
-    cur = app.get_db_cursor()
-    cur.execute("insert into ai_user_question (work_id, question) values (%s, %s)", (work_id, content))
-    cur.connection.commit()
-    app.close_db_cursor(error=None)
 
     def generate():
         for chunk in response:
@@ -43,6 +37,21 @@ def chat():
             yield 'data: {}\n\n'.format(chunk_data)
 
     return Response(generate(), mimetype='text/event-stream')
+
+
+# 保存用户聊天数据
+@chat_bp.route('/saveRecord', methods=['POST'])
+def save_record():
+    content = request.form.get('content')
+    work_id = request.form.get('work_id')
+    cur = app.get_db_cursor()
+    cur.execute("insert into ai_user_question (work_id, question) values (%s, %s)", (work_id, content))
+    commit = cur.connection.commit()
+    # 如果失败的话，就回滚
+    if commit == 0:
+        cur.connection.rollback()
+    app.close_db_cursor(error=None)
+    return "success"
 
 
 # 服务端推送协议测试
@@ -62,6 +71,7 @@ def sse():
     return Response(event_stream(), mimetype='text/event-stream')
 
 
+# 测试数据库连接
 @chat_bp.route('/test', methods=['GET'])
 def test():
     cur = app.get_db_cursor()
@@ -69,3 +79,15 @@ def test():
     result = cur.fetchall()
     app.close_db_cursor(error=None)
     return str(result)
+
+
+@chat_bp.route('/testAdd', methods=['GET'])
+def test_add():
+    cur = app.get_db_cursor()
+    cur.execute("insert into ai_user_question (work_id, question) values (%s, %s)", (1, "testtesttest"))
+    commit = cur.connection.commit()
+    # 如果失败的话，就回滚
+    if commit == 0:
+        cur.connection.rollback()
+    app.close_db_cursor(error=None)
+    return "success"
