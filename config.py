@@ -3,14 +3,14 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 
 
-# 返回结果类型
+# 封装返回结果
 class Result:
     @staticmethod
-    def success(code=200, msg="执行成功", data=None):
+    def success(code=200, msg="Success", data=None):
         return {"code": code, "msg": msg, "data": data}
 
     @staticmethod
-    def error(code=400, msg="执行失败", data=None):
+    def error(code=400, msg="Error", data=None):
         return {"code": code, "msg": msg, "data": data}
 
 

@@ -47,10 +47,7 @@ def save_record():
     answer = request.json.get("answer")
     status = app.execute_sql("insert into ai_user_converse (work_id, question, answer) values (%s, %s, %s)",
                              (work_id, question, answer))
-    if status:
-        return Result.success(200, "保存成功")
-    else:
-        return Result.error(400, "保存失败")
+    return Result.success(200, "保存成功") if status else Result.error(400, "保存失败")
 
 
 # 流式推送测试
@@ -74,5 +71,4 @@ def sse():
 @chat_bp.route('/test', methods=['GET'])
 def test():
     results = app.fetchone_sql("select * from ai_user_converse where id = 1")
-    # print(results)
-    return Result.error("保存成功")
+    return Result.success(200, "查询成功") if results is None else Result.error(400, "查询失败")
