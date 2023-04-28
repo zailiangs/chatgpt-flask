@@ -1,11 +1,11 @@
 import json
 
 import openai
-from flask import request, jsonify, Response, Blueprint
+from flask import request, Response, Blueprint
 from flask_cors import cross_origin
 
 import app
-from config import Logger
+from config import Logger, Result
 
 # 一个蓝图对象
 chat_bp = Blueprint('chat', __name__, url_prefix='/api')
@@ -45,19 +45,12 @@ def save_record():
     work_id = request.json.get("work_id")
     question = request.json.get("question")
     answer = request.json.get("answer")
-    cur = app.get_db_cursor()
-    cur.execute("insert into ai_user_converse (work_id, question, answer) values (%s, %s, %s)",
-                (work_id, question, answer))
-    commit = cur.connection.commit()
-    # 如果失败的话，就回滚
-    if commit == 0:
-        cur.connection.rollback()
-        result = {"code": 400, "msg": "保存失败"}
+    status = app.execute_sql("insert into ai_user_converse (work_id, question, answer) values (%s, %s, %s)",
+                             (work_id, question, answer))
+    if status:
+        return Result.success(200, "保存成功")
     else:
-        result = {"code": 200, "msg": "保存成功"}
-
-    app.close_db_cursor(error=None)
-    return jsonify(result)
+        return Result.error(400, "保存失败")
 
 
 # 流式推送测试
@@ -80,11 +73,6 @@ def sse():
 # 数据库事务功能异常测试
 @chat_bp.route('/test', methods=['GET'])
 def test():
-    cur = app.get_db_cursor()
-    cur.execute("insert into ai_user_converse (work_id, question) values (%s, %s)", (1, "testtesttest"))
-    commit = cur.connection.commit()
-    # 如果失败的话，就回滚
-    if commit == 0:
-        cur.connection.rollback()
-    app.close_db_cursor(error=None)
-    return "success"
+    results = app.fetchone_sql("select * from ai_user_converse where id = 1")
+    # print(results)
+    return Result.error("保存成功")

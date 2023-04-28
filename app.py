@@ -1,6 +1,6 @@
-from flask import Flask, g
+import pymysql
+from flask import Flask
 from flask_cors import CORS
-from pymysql import connect
 
 from chat.api.chat import chat_bp
 
@@ -10,19 +10,48 @@ CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 # 注册蓝图(用的文件名)
 app.register_blueprint(chat_bp)
 # 配置数据库连接
-connect = connect(host="1.117.243.197", port=53306, user="root", password="Passgz6374", db="yk_rank", charset="utf8")
+connect = pymysql.connect(host="sh-cdb-mns9cip2.sql.tencentcdb.com", port=63682, user="root", password="Passgz6374",
+                          db="yk_rank", charset="utf8", autocommit=True)
+cursor = connect.cursor()
 
 
-def get_db_cursor():
-    if 'db' not in g:
-        g.db = connect.cursor()
-    return g.db
+def execute_sql(sql, args=None):
+    try:
+        cursor.execute(sql, args)
+        connect.commit()
+    except Exception as e:
+        print(e)
+        connect.rollback()
+        return False
+    finally:
+        cursor.close()
+    return True
 
 
-@app.teardown_appcontext
-def close_db_cursor(error):
-    if hasattr(g, 'db'):
-        g.db.close()
+def fetchall_sql(sql, args=None):
+    try:
+        cursor.execute(sql, args)
+        results = cursor.fetchall()
+        return results
+    except Exception as e:
+        print(e)
+        connect.rollback()
+        return None
+    finally:
+        cursor.close()
+
+
+def fetchone_sql(sql, args=None):
+    try:
+        cursor.execute(sql, args)
+        result = cursor.fetchone()
+        return result
+    except Exception as e:
+        print(e)
+        connect.rollback()
+        return None
+    finally:
+        cursor.close()
 
 
 @app.route('/')

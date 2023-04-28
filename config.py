@@ -3,6 +3,17 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 
 
+# 返回结果类型
+class Result:
+    @staticmethod
+    def success(code=200, msg="执行成功", data=None):
+        return {"code": code, "msg": msg, "data": data}
+
+    @staticmethod
+    def error(code=400, msg="执行失败", data=None):
+        return {"code": code, "msg": msg, "data": data}
+
+
 # 记录日志操作类
 class Logger:
     def __init__(self, log_file_path):
