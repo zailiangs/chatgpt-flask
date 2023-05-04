@@ -6,15 +6,15 @@ from logging.handlers import TimedRotatingFileHandler
 # 封装返回结果
 class Result:
     @staticmethod
-    def success(code=200, msg="Success", data=None):
+    def success(code=200, msg="SUCCESS", data=None):
         return {"code": code, "msg": msg, "data": data}
 
     @staticmethod
-    def error(code=400, msg="Error", data=None):
+    def error(code=400, msg="ERROR", data=None):
         return {"code": code, "msg": msg, "data": data}
 
 
-# 记录日志操作类
+# 封装日志操作
 class Logger:
     def __init__(self, log_file_path):
         # 创建一个 TimedRotatingFileHandle 对象并设定相关参数

@@ -47,7 +47,7 @@ def save_record():
     answer = request.json.get("answer")
     status = app.execute_sql("insert into ai_user_converse (work_id, question, answer) values (%s, %s, %s)",
                              (work_id, question, answer))
-    return Result.success(200, "保存成功") if status else Result.error(400, "保存失败")
+    return Result.success(msg="保存成功") if status else Result.error(msg="保存失败")
 
 
 # 流式推送测试
@@ -67,8 +67,16 @@ def sse():
     return Response(event_stream(), mimetype='text/event-stream')
 
 
-# 数据库事务功能异常测试
 @chat_bp.route('/test', methods=['GET'])
 def test():
-    results = app.fetchone_sql("select * from ai_user_converse where id = 1")
-    return Result.success(200, "查询成功") if results is None else Result.error(400, "查询失败")
+    content = request.args.get('content')
+    openai.api_key = "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"
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "user", "content": content}
+        ],
+        stream=True,
+    )
+    print(response)
+    return str(response)

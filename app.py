@@ -19,7 +19,8 @@ def execute_sql(sql, args=None):
     try:
         cursor.execute(sql, args)
         connect.commit()
-    except Exception:
+    except Exception as e:
+        print(e)
         connect.rollback()
         return False
     finally:
@@ -32,7 +33,8 @@ def fetchall_sql(sql, args=None):
         cursor.execute(sql, args)
         results = cursor.fetchall()
         return results
-    except Exception:
+    except Exception as e:
+        print(e)
         connect.rollback()
         return None
     finally:
@@ -44,7 +46,8 @@ def fetchone_sql(sql, args=None):
         cursor.execute(sql, args)
         result = cursor.fetchone()
         return result
-    except Exception:
+    except Exception as e:
+        print(e)
         connect.rollback()
         return None
     finally:
