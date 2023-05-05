@@ -66,16 +66,14 @@ def sse():
     return Response(event_stream(), mimetype='text/event-stream')
 
 
-# 数据库事务功能异常测试
 @chat_bp.route('/test', methods=['GET'])
 def test():
     content = request.args.get('content')
     openai.api_key = "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"
 
     chat_history = []
-    messages = [
-        {"role": "user", "content": content}
-    ]
+    messages = {"role": "user", "content": content}
+
     # 如果聊天历史大于0则增加历史到聊天记录中
     if len(chat_history) > 0:
         messages = chat_history.append(messages)
@@ -100,7 +98,7 @@ def test():
             yield 'data: {}\n\n'.format(chunk_data)
 
         print("---complete_answer: " + str(complete_answer))
-        chat_history.append([{"role": "assistant", "content": complete_answer.strip()}])
+        chat_history.append({"role": "assistant", "content": complete_answer})
         print("---chat_history: " + str(chat_history))
 
     return Response(generate(), mimetype='text/event-stream')
