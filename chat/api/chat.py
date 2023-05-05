@@ -19,20 +19,27 @@ logger = Logger('./logs/chat.log')
 def chat():
     content = request.args.get('content')
     openai.api_key = "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"
+
+    chat_history = []
+    messages = [{"role": "user", "content": content}]
+    if len(chat_history) > 0:
+        messages = chat_history + messages
+
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=[
-            {"role": "user", "content": content}
-        ],
+        prompt="\n".join([f"{msg['role']}: {msg['content']}" for msg in messages]) + "\n\nUser:",
+        n=1,
+        stop=None,
         stream=True,
     )
 
     def generate():
         for chunk in response:
             chunk_message = chunk['choices'][0]['delta']
+            chat_history.append({"role": "AI", "content": chunk_message.strip()})
             loads = json.loads(json.dumps(chunk_message))
             # 将单引号替换为双引号
-            chunk_data = str(loads).replace("'", "\"")
+            chunk_data = str(loads).replace("'", '"')
             # 返回event-stream类型的响应
             yield 'data: {}\n\n'.format(chunk_data)
 
@@ -67,16 +74,8 @@ def sse():
     return Response(event_stream(), mimetype='text/event-stream')
 
 
+# 数据库事务功能异常测试
 @chat_bp.route('/test', methods=['GET'])
 def test():
-    content = request.args.get('content')
-    openai.api_key = "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"
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "user", "content": content}
-        ],
-        stream=True,
-    )
-    print(response)
-    return str(response)
+    results = app.fetchone_sql("select * from ai_user_converse where id = 1")
+    return Result.success(200, "查询成功") if results is None else Result.error(400, "查询失败")
