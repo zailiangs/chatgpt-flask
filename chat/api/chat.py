@@ -85,7 +85,6 @@ def test():
         messages=messages,
         stream=True,
     )
-    print("---messages: " + str(messages))
 
     def generate():
         # 用于拼接完整的回答
@@ -93,8 +92,9 @@ def test():
         for chunk in response:
             chunk_message = chunk['choices'][0]['delta']
             resp_content = chunk_message.get("content")
-            print("---resp_content: " + str(resp_content))
-            complete_answer = complete_answer + str(resp_content)
+            # 去除首role 和 尾{}的None
+            if resp_content is not None:
+                complete_answer = complete_answer + str(resp_content)
             loads = json.loads(json.dumps(chunk_message))
             chunk_data = str(loads).replace("'", '"')
             yield 'data: {}\n\n'.format(chunk_data)
