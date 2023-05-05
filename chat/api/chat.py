@@ -72,25 +72,32 @@ def test():
     content = request.args.get('content')
     openai.api_key = "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"
 
-    chat_history = []
-    messages = [{"role": "user", "content": content}]
-    if len(chat_history) > 0:
-        messages = chat_history + messages
+    # chat_history = []
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": content}
+    ]
+    # if len(chat_history) > 0:
+    #     messages = chat_history + messages
 
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages="\n".join([f"{msg['role']}: {msg['content']}" for msg in messages]) + "\n\nUser:",
+        messages=messages,
         stream=True,
     )
+    print("---response: " + str(response))
 
     def generate():
         for chunk in response:
+            print("---chunk: " + str(chunk))
             chunk_message = chunk['choices'][0]['delta']
-            chat_history.append({"role": "AI", "content": chunk_message.strip()})
+            print("---chunk_message: " + str(chunk_message))
+            # chat_history.append({"role": "assistant", "content": chunk_message.strip()})
             loads = json.loads(json.dumps(chunk_message))
             # 将单引号替换为双引号
             chunk_data = str(loads).replace("'", '"')
             # 返回event-stream类型的响应
+            print("---chunk_data: " + str(chunk_data))
             yield 'data: {}\n\n'.format(chunk_data)
 
     return Response(generate(), mimetype='text/event-stream')
