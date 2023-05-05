@@ -93,7 +93,8 @@ def test():
         for chunk in response:
             chunk_message = chunk['choices'][0]['delta']
             resp_content = chunk_message.get("content")
-            complete_answer = complete_answer + resp_content
+            print("---resp_content: " + str(resp_content))
+            complete_answer = complete_answer + str(resp_content)
             loads = json.loads(json.dumps(chunk_message))
             chunk_data = str(loads).replace("'", '"')
             yield 'data: {}\n\n'.format(chunk_data)
