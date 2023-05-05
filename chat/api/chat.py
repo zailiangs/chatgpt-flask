@@ -14,7 +14,7 @@ chat_bp = Blueprint('chat', __name__, url_prefix='/api')
 logger = Logger('./logs/chat.log')
 
 
-# AI聊天
+# AI聊天(不含上下文)
 @cross_origin()
 @chat_bp.route('/chat', methods=['GET'])
 def chat():
@@ -85,10 +85,16 @@ def delete_session():
 @chat_bp.route('/test', methods=['GET'])
 def test():
     content = request.args.get('content')
-    flag = request.args.get('flag')
-    flag = True if flag == 1 else False
+    session_id = request.args.get('session_id')
     openai.api_key = "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"
     chat_history = []
+    # 根据session_id获取对话历史
+    results = app.fetchall_sql("select question, answer from ai_dialogue where session_id = %s limit 5", (session_id,))
+    if results is not None:
+        for result in results:
+            chat_history.append({"role": "user", "content": result[0]})
+            chat_history.append({"role": "assistant", "content": result[1]})
+
     messages = {"role": "user", "content": content}
 
     # 如果聊天历史大于0则增加历史到聊天记录中
@@ -100,24 +106,19 @@ def test():
         messages=[messages],
         stream=True,
     )
-    while flag:
-        def generate():
-            # 用于拼接完整的回答
-            complete_answer = ""
-            for chunk in response:
-                chunk_message = chunk['choices'][0]['delta']
-                resp_content = chunk_message.get("content")
-                # 去除首role 和 尾{}的None
-                if resp_content is not None:
-                    complete_answer = complete_answer + str(resp_content)
-                loads = json.loads(json.dumps(chunk_message))
-                chunk_data = str(loads).replace("'", '"')
-                yield 'data: {}\n\n'.format(chunk_data)
 
-            print("---complete_answer: " + str(complete_answer))
-            chat_history.append({"role": "assistant", "content": complete_answer})
-            print("---chat_history: " + str(chat_history))
+    def generate():
+        # 用于拼接完整的回答
+        complete_answer = ""
+        for chunk in response:
+            chunk_message = chunk['choices'][0]['delta']
+            resp_content = chunk_message.get("content")
+            # 去除首role 和 尾{}的None
+            if resp_content is not None:
+                complete_answer = complete_answer + str(resp_content)
+            loads = json.loads(json.dumps(chunk_message))
+            chunk_data = str(loads).replace("'", '"')
+            yield 'data: {}\n\n'.format(chunk_data)
+        chat_history.append({"role": "assistant", "content": complete_answer})
 
-        return Response(generate(), mimetype='text/event-stream')
-    else:
-        return Result.success(msg="聊天结束")
+    return Response(generate(), mimetype='text/event-stream')
