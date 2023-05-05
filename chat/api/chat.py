@@ -79,9 +79,7 @@ def test():
 
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        prompt="\n".join([f"{msg['role']}: {msg['content']}" for msg in messages]) + "\n\nUser:",
-        n=1,
-        stop=None,
+        messages="\n".join([f"{msg['role']}: {msg['content']}" for msg in messages]) + "\n\nUser:",
         stream=True,
     )
 
