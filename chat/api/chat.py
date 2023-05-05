@@ -69,8 +69,8 @@ def sse():
 @chat_bp.route('/test', methods=['GET'])
 def test():
     content = request.args.get('content')
+    flag = request.args.get('flag')
     openai.api_key = "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"
-
     chat_history = []
     messages = {"role": "user", "content": content}
 
@@ -83,22 +83,24 @@ def test():
         messages=[messages],
         stream=True,
     )
+    while flag:
+        def generate():
+            # 用于拼接完整的回答
+            complete_answer = ""
+            for chunk in response:
+                chunk_message = chunk['choices'][0]['delta']
+                resp_content = chunk_message.get("content")
+                # 去除首role 和 尾{}的None
+                if resp_content is not None:
+                    complete_answer = complete_answer + str(resp_content)
+                loads = json.loads(json.dumps(chunk_message))
+                chunk_data = str(loads).replace("'", '"')
+                yield 'data: {}\n\n'.format(chunk_data)
 
-    def generate():
-        # 用于拼接完整的回答
-        complete_answer = ""
-        for chunk in response:
-            chunk_message = chunk['choices'][0]['delta']
-            resp_content = chunk_message.get("content")
-            # 去除首role 和 尾{}的None
-            if resp_content is not None:
-                complete_answer = complete_answer + str(resp_content)
-            loads = json.loads(json.dumps(chunk_message))
-            chunk_data = str(loads).replace("'", '"')
-            yield 'data: {}\n\n'.format(chunk_data)
+            print("---complete_answer: " + str(complete_answer))
+            chat_history.append({"role": "assistant", "content": complete_answer})
+            print("---chat_history: " + str(chat_history))
 
-        print("---complete_answer: " + str(complete_answer))
-        chat_history.append({"role": "assistant", "content": complete_answer})
-        print("---chat_history: " + str(chat_history))
-
-    return Response(generate(), mimetype='text/event-stream')
+        return Response(generate(), mimetype='text/event-stream')
+    else:
+        return Result.success(msg="聊天结束")
