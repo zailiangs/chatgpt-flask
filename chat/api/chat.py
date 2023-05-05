@@ -1,4 +1,5 @@
 import json
+import uuid
 
 import openai
 from flask import request, Response, Blueprint
@@ -38,38 +39,54 @@ def chat():
     return Response(generate(), mimetype='text/event-stream')
 
 
-# 保存用户聊天数据
-@chat_bp.route('/saveRecord', methods=['POST'])
-def save_record():
-    work_id = request.json.get("work_id")
-    question = request.json.get("question")
-    answer = request.json.get("answer")
-    status = app.execute_sql("insert into ai_user_converse (work_id, question, answer) values (%s, %s, %s)",
-                             (work_id, question, answer))
-    return Result.success(msg="保存成功") if status else Result.error(msg="保存失败")
+# 新建会话
+@chat_bp.route('/newSession', methods=['POST'])
+def new_session():
+    uid = request.json.get("uid")
+    session_id = str(uuid.uuid4())
+    session_name = "New Chat"
+    status = app.execute_sql("insert into ai_session (uid, session_id, session_name) values (%s, %s, %s)",
+                             (uid, session_id, session_name))
+    return Result.success(msg="新建成功") if status else Result.error(msg="新建失败")
 
 
-# 流式推送测试
-@chat_bp.route('/sse', methods=['GET'])
-def sse():
-    content = request.args.get("content")
-    logger.info("--------------------SSE API Call")
+# 获取会话列表
+@chat_bp.route('/getSessionList', methods=['GET'])
+def get_session_list():
+    uid = request.args.get("uid")
+    results = app.fetchall_sql("select session_id, session_name from ai_session where is_delete = 0 and uid = %s "
+                               "order by create_time desc", (uid,))
+    data = []
+    if results is not None:
+        for result in results:
+            row_data = {'session_id': result[0], 'session_name': result[1]}
+            data.append(row_data)
+    return Result.success(data=data)
 
-    def event_stream():
-        data_list = [{"role": "assistant"}, {"content": "你好"}, {"content": "!"}, {"content": "有"},
-                     {"content": "什么"}, {"content": "可以"}, {"content": "帮助"}, {"content": "您"},
-                     {"content": "的"}, {"content": "吗?"}, {"content": " 内容测试词: "}, {"content": content}, {}]
-        for data in data_list:
-            data_replace = str(data).replace("'", '"')
-            yield 'data: {}\n\n'.format(data_replace)
 
-    return Response(event_stream(), mimetype='text/event-stream')
+# 重命名会话名称
+@chat_bp.route('/renameSession', methods=['POST'])
+def rename_session():
+    session_id = request.json.get("session_id")
+    session_name = request.json.get("session_name")
+    status = app.execute_sql("update ai_session set session_name = %s where session_id = %s",
+                             (session_name, session_id))
+    return Result.success(msg="修改成功") if status else Result.error(msg="修改失败")
+
+
+# 删除会话
+@chat_bp.route('/deleteSession', methods=['POST'])
+def delete_session():
+    session_id = request.json.get("session_id")
+    status = app.execute_sql("update ai_session set is_delete = 1 where session_id = %s", (session_id,))
+    return Result.success(msg="删除成功") if status else Result.error(msg="删除失败")
 
 
 @chat_bp.route('/test', methods=['GET'])
 def test():
     content = request.args.get('content')
     flag = request.args.get('flag')
+    flag = True if flag == 1 else False
     openai.api_key = "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"
     chat_history = []
     messages = {"role": "user", "content": content}

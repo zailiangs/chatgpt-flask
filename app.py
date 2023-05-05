@@ -12,24 +12,26 @@ app.register_blueprint(chat_bp)
 # 配置数据库连接
 connect = pymysql.connect(host="sh-cdb-mns9cip2.sql.tencentcdb.com", port=63682, user="root", password="Passgz6374",
                           db="yk_rank", charset="utf8", autocommit=True)
-cursor = connect.cursor()
 
 
 def execute_sql(sql, args=None):
     try:
+        cursor = connect.cursor()
         cursor.execute(sql, args)
         connect.commit()
     except Exception as e:
         print(e)
         connect.rollback()
         return False
-    finally:
-        cursor.close()
+    # finally:
+        # cursor.close()
+        # connect.close()
     return True
 
 
 def fetchall_sql(sql, args=None):
     try:
+        cursor = connect.cursor()
         cursor.execute(sql, args)
         results = cursor.fetchall()
         return results
@@ -37,12 +39,14 @@ def fetchall_sql(sql, args=None):
         print(e)
         connect.rollback()
         return None
-    finally:
-        cursor.close()
+    # finally:
+        # cursor.close()
+        # connect.close()
 
 
 def fetchone_sql(sql, args=None):
     try:
+        cursor = connect.cursor()
         cursor.execute(sql, args)
         result = cursor.fetchone()
         return result
@@ -50,8 +54,9 @@ def fetchone_sql(sql, args=None):
         print(e)
         connect.rollback()
         return None
-    finally:
-        cursor.close()
+    # finally:
+        # cursor.close()
+        # connect.close()
 
 
 @app.route('/')
