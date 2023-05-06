@@ -3,8 +3,11 @@ from flask import Flask
 from flask_cors import CORS
 
 from chat.api.chat import chat_bp
+from config import Config
 
 app = Flask(__name__)
+# 加载配置类
+app.config.from_object(Config)
 # 初始化CORS扩展
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 # 注册蓝图(用的文件名)
@@ -23,9 +26,6 @@ def execute_sql(sql, args=None):
         print(e)
         connect.rollback()
         return False
-    # finally:
-        # cursor.close()
-        # connect.close()
     return True
 
 
@@ -39,9 +39,6 @@ def fetchall_sql(sql, args=None):
         print(e)
         connect.rollback()
         return None
-    # finally:
-        # cursor.close()
-        # connect.close()
 
 
 def fetchone_sql(sql, args=None):
@@ -54,9 +51,6 @@ def fetchone_sql(sql, args=None):
         print(e)
         connect.rollback()
         return None
-    # finally:
-        # cursor.close()
-        # connect.close()
 
 
 @app.route('/')

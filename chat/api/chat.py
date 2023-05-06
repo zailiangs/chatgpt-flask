@@ -6,7 +6,7 @@ from flask import request, Response, Blueprint
 from flask_cors import cross_origin
 
 import app
-from config import Logger, Result
+from common.wrapper import Logger, Result
 
 # 一个蓝图对象
 chat_bp = Blueprint('chat', __name__, url_prefix='/api')
@@ -19,9 +19,9 @@ logger = Logger('./logs/chat.log')
 @chat_bp.route('/chat', methods=['GET'])
 def chat():
     content = request.args.get('content')
-    openai.api_key = "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"
+    openai.api_key = app.Config.OPENAI_API_KEY
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model=app.Config.MODEL,
         messages=[
             {"role": "user", "content": content}
         ],
@@ -44,7 +44,7 @@ def chat():
 def chatPlus():
     content = request.args.get('content')
     session_id = request.args.get('session_id')
-    openai.api_key = "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"
+    openai.api_key = app.Config.OPENAI_API_KEY
     chat_history = []
     # 根据session_id获取对话历史
     results = app.fetchall_sql("select question, answer from ai_dialogue where session_id = %s limit 5", (session_id,))
@@ -68,7 +68,7 @@ def chatPlus():
     messages = json.loads(json.dumps(messages))
 
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model=app.Config.MODEL,
         messages=messages,
         stream=True,
     )
@@ -134,3 +134,22 @@ def delete_session():
     session_id = request.json.get("session_id")
     status = app.execute_sql("update ai_session set is_delete = 1 where session_id = %s", (session_id,))
     return Result.success(msg="删除成功") if status else Result.error(msg="删除失败")
+
+
+# 获取对话历史
+@chat_bp.route('/getDialogueHistory', methods=['GET'])
+def get_dialogue_history():
+    session_id = request.args.get("session_id")
+    results = app.fetchall_sql("select question, answer from ai_dialogue where session_id = %s order by "
+                               "create_time desc", (session_id,))
+    data = []
+    if results is not None:
+        for result in results:
+            row_data = {'question': result[0], 'answer': result[1]}
+            data.append(row_data)
+    return Result.success(data=data)
+
+
+@chat_bp.route('/test', methods=['GET'])
+def test():
+    return Result.success()
