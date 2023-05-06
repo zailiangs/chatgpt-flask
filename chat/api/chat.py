@@ -102,11 +102,14 @@ def test():
         chat_history.append(messages)
         messages = chat_history
     # 将聊天记录转换为json格式
-    messages = str(json.loads(json.dumps(messages))).replace("'", '"')
+    messages = json.loads(json.dumps(messages))
+    # print(type(messages))
+    # 将messages转换为object格式
+    # messages = json.loads(messages).replace("'", '"')
 
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=[messages],
+        messages=messages,
         stream=True,
     )
 
