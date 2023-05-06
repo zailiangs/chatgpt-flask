@@ -101,6 +101,8 @@ def test():
     if len(chat_history) > 0:
         chat_history.append(messages)
         messages = chat_history
+    # 将聊天记录转换为json格式
+    messages = str(json.loads(json.dumps(messages))).replace("'", '"')
 
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
