@@ -99,7 +99,8 @@ def test():
 
     # 如果聊天历史大于0则增加历史到聊天记录中
     if len(chat_history) > 0:
-        messages = chat_history.append(messages)
+        chat_history.append(messages)
+        messages = chat_history
 
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
