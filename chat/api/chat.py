@@ -60,6 +60,7 @@ def chatPlus():
         chat_history.append(messages)
         messages = chat_history
     else:
+        messages = [messages]
         # 否则将用户的问题前20个字重命名会话名称
         app.execute_sql("update ai_session set session_name = %s where session_id = %s", (content[:20], session_id))
 
