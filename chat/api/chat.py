@@ -39,6 +39,59 @@ def chat():
     return Response(generate(), mimetype='text/event-stream')
 
 
+# AI聊天(含上下文)
+@chat_bp.route('/chatPlus', methods=['GET'])
+def chatPlus():
+    content = request.args.get('content')
+    session_id = request.args.get('session_id')
+    openai.api_key = "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"
+    chat_history = []
+    # 根据session_id获取对话历史
+    results = app.fetchall_sql("select question, answer from ai_dialogue where session_id = %s limit 5", (session_id,))
+    if results is not None:
+        for result in results:
+            chat_history.append({"role": "user", "content": result[0]})
+            chat_history.append({"role": "assistant", "content": result[1]})
+
+    messages = {"role": "user", "content": content}
+
+    # 如果聊天历史大于0则增加历史到聊天记录中
+    if len(chat_history) > 0:
+        chat_history.append(messages)
+        messages = chat_history
+    else:
+        # 否则将用户的问题前20个字重命名会话名称
+        app.execute_sql("update ai_session set session_name = %s where session_id = %s", (content[:20], session_id))
+
+    # 将聊天记录转换为json对象格式
+    messages = json.loads(json.dumps(messages))
+
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=messages,
+        stream=True,
+    )
+
+    def generate():
+        # 用于拼接完整的回答
+        complete_answer = ""
+        for chunk in response:
+            chunk_message = chunk['choices'][0]['delta']
+            resp_content = chunk_message.get("content")
+            # 去除首role 和 尾{}的None
+            if resp_content is not None:
+                complete_answer = complete_answer + str(resp_content)
+            loads = json.loads(json.dumps(chunk_message))
+            chunk_data = str(loads).replace("'", '"')
+            yield 'data: {}\n\n'.format(chunk_data)
+        chat_history.append({"role": "assistant", "content": complete_answer})
+        # 将用户的问题和AI的回答存入数据库
+        app.execute_sql("insert into ai_dialogue (session_id, question, answer) values (%s, %s, %s)",
+                        (session_id, content, complete_answer))
+
+    return Response(generate(), mimetype='text/event-stream')
+
+
 # 新建会话
 @chat_bp.route('/newSession', methods=['POST'])
 def new_session():
@@ -80,54 +133,3 @@ def delete_session():
     session_id = request.json.get("session_id")
     status = app.execute_sql("update ai_session set is_delete = 1 where session_id = %s", (session_id,))
     return Result.success(msg="删除成功") if status else Result.error(msg="删除失败")
-
-
-@chat_bp.route('/test', methods=['GET'])
-def test():
-    content = request.args.get('content')
-    session_id = request.args.get('session_id')
-    openai.api_key = "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"
-    chat_history = []
-    # 根据session_id获取对话历史
-    results = app.fetchall_sql("select question, answer from ai_dialogue where session_id = %s limit 5", (session_id,))
-    if results is not None:
-        for result in results:
-            chat_history.append({"role": "user", "content": result[0]})
-            chat_history.append({"role": "assistant", "content": result[1]})
-
-    messages = {"role": "user", "content": content}
-
-    # 如果聊天历史大于0则增加历史到聊天记录中
-    if len(chat_history) > 0:
-        chat_history.append(messages)
-        messages = chat_history
-    # 将聊天记录转换为json格式
-    messages = json.loads(json.dumps(messages))
-    # print(type(messages))
-    # 将messages转换为object格式
-    # messages = json.loads(messages).replace("'", '"')
-
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages,
-        stream=True,
-    )
-
-    def generate():
-        # 用于拼接完整的回答
-        complete_answer = ""
-        for chunk in response:
-            chunk_message = chunk['choices'][0]['delta']
-            resp_content = chunk_message.get("content")
-            # 去除首role 和 尾{}的None
-            if resp_content is not None:
-                complete_answer = complete_answer + str(resp_content)
-            loads = json.loads(json.dumps(chunk_message))
-            chunk_data = str(loads).replace("'", '"')
-            yield 'data: {}\n\n'.format(chunk_data)
-        chat_history.append({"role": "assistant", "content": complete_answer})
-        # 将用户的问题和AI的回答存入数据库
-        app.execute_sql("insert into ai_dialogue (session_id, question, answer) values (%s, %s, %s)",
-                        (session_id, content, complete_answer))
-
-    return Response(generate(), mimetype='text/event-stream')
