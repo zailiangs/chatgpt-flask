@@ -120,5 +120,8 @@ def test():
             chunk_data = str(loads).replace("'", '"')
             yield 'data: {}\n\n'.format(chunk_data)
         chat_history.append({"role": "assistant", "content": complete_answer})
+        # 将用户的问题和AI的回答存入数据库
+        app.execute_sql("insert into ai_dialogue (session_id, question, answer) values (%s, %s, %s)",
+                        (session_id, content, complete_answer))
 
     return Response(generate(), mimetype='text/event-stream')
