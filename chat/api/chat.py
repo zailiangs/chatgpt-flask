@@ -19,6 +19,8 @@ logger = Logger('./logs/chat.log')
 @chat_bp.route('/chat', methods=['GET'])
 def chat():
     content = request.args.get('content')
+    if content is None or content == "":
+        return Result.error(msg="内容为空")
     openai.api_key = app.Config.OPENAI_API_KEY
     response = openai.ChatCompletion.create(
         model=app.Config.MODEL,
@@ -44,6 +46,8 @@ def chat():
 def chatPlus():
     content = request.args.get('content')
     session_id = request.args.get('session_id')
+    if content is None or content == "":
+        return Result.error(msg="内容为空")
     openai.api_key = app.Config.OPENAI_API_KEY
     chat_history = []
     # 根据session_id获取对话历史
