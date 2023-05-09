@@ -1,5 +1,6 @@
 import json
 import uuid
+from datetime import datetime
 
 import openai
 from flask import request, Response, Blueprint
@@ -149,7 +150,8 @@ def get_dialogue_history():
     data = []
     if results is not None:
         for result in results:
-            row_data = {'question': result[0], 'answer': result[1], 'create_time': result[2]}
+            row_data = {'question': result[0], 'answer': result[1],
+                        'create_time': result[2].strftime("%Y-%m-%d %H:%M:%S")}
             data.append(row_data)
     return Result.success(data=data)
 
