@@ -144,12 +144,12 @@ def delete_session():
 @chat_bp.route('/getDialogueHistory', methods=['GET'])
 def get_dialogue_history():
     session_id = request.args.get("session_id")
-    results = app.fetchall_sql("select question, answer from ai_dialogue where session_id = %s order by "
+    results = app.fetchall_sql("select question, answer, create_time from ai_dialogue where session_id = %s order by "
                                "create_time desc", (session_id,))
     data = []
     if results is not None:
         for result in results:
-            row_data = {'question': result[0], 'answer': result[1]}
+            row_data = {'question': result[0], 'answer': result[1], 'create_time': result[2]}
             data.append(row_data)
     return Result.success(data=data)
 
