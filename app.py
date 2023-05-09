@@ -1,3 +1,5 @@
+import functools
+
 import pymysql
 from flask import Flask
 from flask_cors import CORS
@@ -17,18 +19,35 @@ connect = pymysql.connect(host="sh-cdb-mns9cip2.sql.tencentcdb.com", port=63682,
                           db="yk_rank", charset="utf8", autocommit=True, connect_timeout=10, read_timeout=10)
 
 
+# 检测数据库连接是否可用, 如果不可用则重连
+def check_connection(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            connect.ping(reconnect=True)
+        except Exception as e:
+            app.logger.error("[Sun] The database connection is abnormal. Reconnecting..., Error: %s", e)
+            connect.close()
+            connect.connect()
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+@check_connection
 def execute_sql(sql, args=None):
     try:
         cursor = connect.cursor()
         cursor.execute(sql, args)
         connect.commit()
     except Exception as e:
-        print(e)
+        app.logger.error("[Sun] Database operation exception, Error: %s", e)
         connect.rollback()
         return False
     return True
 
 
+@check_connection
 def fetchall_sql(sql, args=None):
     try:
         cursor = connect.cursor()
@@ -36,11 +55,12 @@ def fetchall_sql(sql, args=None):
         results = cursor.fetchall()
         return results
     except Exception as e:
-        print(e)
+        app.logger.error("[Sun] Database operation exception, Error: %s", e)
         connect.rollback()
         return None
 
 
+@check_connection
 def fetchone_sql(sql, args=None):
     try:
         cursor = connect.cursor()
@@ -48,7 +68,7 @@ def fetchone_sql(sql, args=None):
         result = cursor.fetchone()
         return result
     except Exception as e:
-        print(e)
+        app.logger.error("[Sun] Database operation exception, Error: %s", e)
         connect.rollback()
         return None
 
