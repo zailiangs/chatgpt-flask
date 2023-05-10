@@ -114,7 +114,7 @@ def new_session():
 def get_session_list():
     uid = request.args.get("uid")
     results = app.fetchall_sql("select session_id, session_name from ai_session where is_delete = 0 and uid = %s "
-                               "order by create_time desc", (uid,))
+                               "order by create_time", (uid,))
     data = []
     if results is not None:
         for result in results:
@@ -146,7 +146,7 @@ def delete_session():
 def get_dialogue_history():
     session_id = request.args.get("session_id")
     results = app.fetchall_sql("select question, answer, create_time from ai_dialogue where session_id = %s order by "
-                               "create_time desc", (session_id,))
+                               "create_time", (session_id,))
     data = []
     if results is not None:
         for result in results:
