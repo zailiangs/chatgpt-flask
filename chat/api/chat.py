@@ -34,8 +34,7 @@ def chat():
         def generate():
             for chunk in response:
                 chunk_message = chunk['choices'][0]['delta']
-                loads = json.loads(json.dumps(chunk_message))
-                chunk_data = str(loads).replace("'", "\"")
+                chunk_data = json.dumps(chunk_message, ensure_ascii=False)
                 # 返回event-stream类型的响应
                 yield 'data: {}\n\n'.format(chunk_data)
 
