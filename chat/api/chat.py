@@ -30,24 +30,20 @@ def chat():
             ],
             stream=True,
         )
-
-        def generate():
-            for chunk in response:
-                chunk_message = chunk['choices'][0]['delta']
-                chunk_data = json.dumps(chunk_message, ensure_ascii=False)
-                # 返回event-stream类型的响应
-                yield 'data: {}\n\n'.format(chunk_data)
-
-        return Response(generate(), mimetype='text/event-stream')
     except Exception as e:
-        info = {"content": "错误"}
-        dumps = json.dumps(info, ensure_ascii=False)
-        print(dumps)
-        stream_data = "data: {}\n\n".format(dumps)
-        print(stream_data)
-        load = json.loads(stream_data)
-        print(load)
-        return Response(load, mimetype='text/event-stream')
+        info = {"content": "请求ChatGPT次数超频, 请等待一段时间后重试 -" + str(e)}
+        data = json.dumps(info, ensure_ascii=False)
+        stream_data = "data: {}\n\n".format(data)
+        return Response(stream_data, mimetype='text/event-stream')
+
+    def generate():
+        for chunk in response:
+            chunk_message = chunk['choices'][0]['delta']
+            chunk_data = json.dumps(chunk_message, ensure_ascii=False)
+            # 返回event-stream类型的响应
+            yield 'data: {}\n\n'.format(chunk_data)
+
+    return Response(generate(), mimetype='text/event-stream')
 
 
 # AI聊天(含上下文)
@@ -78,13 +74,19 @@ def chatPlus():
         app.execute_sql("update ai_session set session_name = %s where session_id = %s", (content[:20], session_id))
 
     # 将聊天记录转换为json对象格式
-    messages = json.loads(json.dumps(messages))
+    messages = json.loads(json.dumps(messages, ensure_ascii=False))
 
-    response = openai.ChatCompletion.create(
-        model=app.Config.MODEL,
-        messages=messages,
-        stream=True,
-    )
+    try:
+        response = openai.ChatCompletion.create(
+            model=app.Config.MODEL,
+            messages=messages,
+            stream=True,
+        )
+    except Exception as e:
+        info = {"content": "请求ChatGPT次数超频, 请等待一段时间后重试 -" + str(e)}
+        data = json.dumps(info, ensure_ascii=False)
+        stream_data = "data: {}\n\n".format(data)
+        return Response(stream_data, mimetype='text/event-stream')
 
     def generate():
         # 用于拼接完整的回答
@@ -95,8 +97,7 @@ def chatPlus():
             # 去除首role 和 尾{}的None
             if resp_content is not None:
                 complete_answer = complete_answer + str(resp_content)
-            loads = json.loads(json.dumps(chunk_message))
-            chunk_data = str(loads).replace("'", '"')
+            chunk_data = json.dumps(chunk_message, ensure_ascii=False)
             yield 'data: {}\n\n'.format(chunk_data)
         chat_history.append({"role": "assistant", "content": complete_answer})
         # 将用户的问题和AI的回答存入数据库
