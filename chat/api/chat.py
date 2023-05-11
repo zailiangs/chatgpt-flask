@@ -30,25 +30,25 @@ def chat():
             ],
             stream=True,
         )
+
+        def generate():
+            for chunk in response:
+                chunk_message = chunk['choices'][0]['delta']
+                loads = json.loads(json.dumps(chunk_message))
+                chunk_data = str(loads).replace("'", "\"")
+                # 返回event-stream类型的响应
+                yield 'data: {}\n'.format(chunk_data)
+
+        return Response(generate(), mimetype='text/event-stream')
     except Exception as e:
         info = {"content": "错误"}
         dumps = json.dumps(info, ensure_ascii=False)
         print(dumps)
-        stream_data = "data: {}".format(dumps)
+        stream_data = "data: {}\n".format(dumps)
         print(stream_data)
         load = json.loads(stream_data)
         print(load)
         return Response(load, mimetype='text/event-stream')
-
-    def generate():
-        for chunk in response:
-            chunk_message = chunk['choices'][0]['delta']
-            loads = json.loads(json.dumps(chunk_message))
-            chunk_data = str(loads).replace("'", "\"")
-            # 返回event-stream类型的响应
-            yield 'data: {}'.format(chunk_data)
-
-    return Response(generate(), mimetype='text/event-stream')
 
 
 # AI聊天(含上下文)
