@@ -104,9 +104,9 @@ def chat_plus():
 
 
 # AI数据处理
-@chat_bp.route('/dataProcessing', methods=['GET'])
+@chat_bp.route('/dataProcessing', methods=['POST'])
 def data_processing():
-    content = request.args.get('content')
+    content = request.json.get('content')
     if content is None or content == "":
         return Result.error(msg="内容为空")
     openai.api_key = app.Config.OPENAI_API_KEY
@@ -118,8 +118,8 @@ def data_processing():
     except Exception as e:
         logger.error("请求失败 - " + str(e))
         return Result.error(data="请求失败 - OpenAI服务异常")
-    content = response['choices'][0]['message']['content']
-    return Result.success(data=content)
+    answer = response['choices'][0]['message']['content']
+    return Result.success(data=answer)
 
 
 # 新建会话
