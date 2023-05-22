@@ -14,7 +14,7 @@ chat_bp = Blueprint('chat', __name__, url_prefix='/api')
 logger = Logger('./logs/chat.log')
 
 
-# AI聊天(不含上下文)
+# AI聊天(stream 不含上下文)
 @cross_origin()
 @chat_bp.route('/chat', methods=['GET'])
 def chat():
@@ -46,9 +46,57 @@ def chat():
     return Response(generate(), mimetype='text/event-stream')
 
 
-# AI聊天(含上下文)
+# AI聊天(json 含上下文)
+@chat_bp.route('/chatJson', methods=['GET'])
+def chat_json():
+    content = request.args.get('content')
+    session_id = request.args.get('session_id')
+    if content is None or content == "":
+        return Result.error(msg="内容为空")
+    openai.api_key = app.Config.OPENAI_API_KEY
+    # chat_history = []
+    # # 根据session_id获取对话历史
+    # results = app.fetchall_sql("select question, answer from ai_dialogue where session_id = %s limit 5", (session_id,))
+    # if results is not None:
+    #     for result in results:
+    #         chat_history.append({"role": "user", "content": result[0]})
+    #         chat_history.append({"role": "assistant", "content": result[1]})
+
+    messages = {"role": "user", "content": content}
+
+    # # 如果聊天历史大于0则增加历史到聊天记录中
+    # if len(chat_history) > 0:
+    #     chat_history.append(messages)
+    #     messages = chat_history
+    # else:
+    #     messages = [messages]
+    #     # 否则将用户的问题前20个字重命名会话名称
+    #     app.execute_sql("update ai_session set session_name = %s where session_id = %s", (content[:20], session_id))
+
+    # 将聊天记录转换为json对象格式
+    # messages = json.loads(json.dumps(messages, ensure_ascii=False))
+
+    try:
+        response = openai.ChatCompletion.create(
+            model=app.Config.MODEL,
+            messages=[messages]
+        )
+    except Exception as e:
+        logger.error("请求ChatGPT次数超频, 请等待一段时间后重试 -" + str(e))
+        return Result.error(data="请求ChatGPT次数超频, 请等待一段时间后重试")
+
+    # chat_history.append({"role": "assistant", "content": complete_answer})
+    # # 将用户的问题和AI的回答存入数据库
+    # app.execute_sql("insert into ai_dialogue (session_id, question, answer) values (%s, %s, %s)",
+    #                 (session_id, content, complete_answer))
+
+    print("***response: ", response)
+    return Result.success(data=response)
+
+
+# AI聊天(stream 含上下文)
 @chat_bp.route('/chatPlus', methods=['GET'])
-def chatPlus():
+def chat_plus():
     content = request.args.get('content')
     session_id = request.args.get('session_id')
     if content is None or content == "":
