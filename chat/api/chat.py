@@ -116,11 +116,10 @@ def data_processing():
             messages=[{"role": "user", "content": content}]
         )
     except Exception as e:
-        logger.error("请求失败 -" + str(e))
+        logger.error("请求失败 - " + str(e))
         return Result.error(data="请求失败 - OpenAI服务异常")
-    msg = response['choices'][0]['message']
-    print(msg)
-    return Result.success(data=msg)
+    content = response['choices'][0]['message']['content']
+    return Result.success(data=content)
 
 
 # 新建会话
