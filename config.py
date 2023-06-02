@@ -1,6 +1,6 @@
 class Config(object):
     MODEL = "gpt-3.5-turbo"
-    OPENAI_API_KEY = "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"
+    OPENAI_API_KEY = "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"
 
 
 class ProductionConfig(Config):

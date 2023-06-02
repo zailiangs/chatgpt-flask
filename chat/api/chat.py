@@ -31,7 +31,7 @@ def chat():
             stream=True,
         )
     except Exception as e:
-        info = {"content": "请求ChatGPT次数超频, 请等待一段时间后重试 -" + str(e)}
+        info = {"content": "请求ChatGPT次数超频, / -" + str(e)}
         data = json.dumps(info, ensure_ascii=False)
         stream_data = "data: {}\n\n".format(data)
         return Response(stream_data, mimetype='text/event-stream')
