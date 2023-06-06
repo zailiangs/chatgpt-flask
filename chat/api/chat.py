@@ -122,6 +122,26 @@ def data_processing():
     return Result.success(data=answer)
 
 
+# 带密匙的AI数据处理
+@chat_bp.route('/dataProcessingWithKey', methods=['POST'])
+def data_processing_with_key():
+    content = request.json.get('content')
+    apikey = request.json.get('apikey')
+    if content is None or content == "":
+        return Result.error(msg="内容为空")
+    openai.api_key = apikey
+    try:
+        response = openai.ChatCompletion.create(
+            model=app.Config.MODEL,
+            messages=[{"role": "user", "content": content}]
+        )
+    except Exception as e:
+        logger.error("请求失败 - " + str(e))
+        return Result.error(data="请求失败 - OpenAI服务异常")
+    answer = response['choices'][0]['message']['content']
+    return Result.success(data=answer)
+
+
 # 新建会话
 @chat_bp.route('/newSession', methods=['POST'])
 def new_session():
