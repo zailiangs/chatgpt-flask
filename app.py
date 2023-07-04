@@ -15,8 +15,8 @@ CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 # 注册蓝图(用的文件名)
 app.register_blueprint(chat_bp)
 # 配置数据库连接
-connect = pymysql.connect(host="sh-cdb-mns9cip2.sql.tencentcdb.com", port=63682, user="root", password="Passgz6374",
-                          db="yk_rank", charset="utf8", autocommit=True, connect_timeout=10, read_timeout=10)
+connect = pymysql.connect(host="localhost", port=3306, user="root", password="xxxx",
+                          db="db", charset="utf8", autocommit=True, connect_timeout=10, read_timeout=10)
 
 
 # 检测数据库连接是否可用, 如果不可用则重连
