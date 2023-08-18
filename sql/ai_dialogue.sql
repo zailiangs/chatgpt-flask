@@ -1,25 +1,6 @@
-/*
- Navicat Premium Data Transfer
-
- Source Server         : Tencent MySQL
- Source Server Type    : MySQL
- Source Server Version : 50718 (5.7.18-txsql-log)
- Source Host           : sh-cdb-mns9cip2.sql.tencentcdb.com:63682
- Source Schema         : yk_rank
-
- Target Server Type    : MySQL
- Target Server Version : 50718 (5.7.18-txsql-log)
- File Encoding         : 65001
-
- Date: 06/05/2023 11:53:35
-*/
-
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
--- ----------------------------
--- Table structure for ai_dialogue
--- ----------------------------
 DROP TABLE IF EXISTS `ai_dialogue`;
 CREATE TABLE `ai_dialogue`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
